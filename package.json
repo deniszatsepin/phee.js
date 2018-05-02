@@ -1,0 +1,31 @@
+{
+  "name": "phee.js",
+  "version": "0.0.1",
+  "description": "Phee.js is a TypeScript/JavaScript physics engine for 3D games",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git"
+  },
+  "keywords": [
+    "physics",
+    "3D",
+    "games"
+  ],
+  "author": "Denis Zatsepin <denis@zatsepin.me>",
+  "license": "MIT",
+  "devDependencies": {
+    "autobind-decorator": "^2.1.0",
+    "awesome-typescript-loader": "^5.0.0",
+    "source-map-loader": "^0.2.3",
+    "ts-node": "^6.0.2",
+    "typescript": "^2.8.3",
+    "webpack": "^4.6.0"
+  },
+  "dependencies": {
+    "gl-matrix": "^2.5.1"
+  }
+}
