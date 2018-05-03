@@ -1,26 +1,31 @@
-import { Vector3 } from 'three'
-import { BodyInterface } from './body.physics'
+import { Vector3 } from 'three';
+import { IBody } from './body.physics';
 
 export interface ContactInterface {
-    resolve(duration: number)
-    calculateSeparatingVelocity(): number
+    resolve(duration: number): void;
+    calculateSeparatingVelocity(): number;
 }
 
 export default class Contact implements ContactInterface {
-    bodies: Array<BodyInterface>
-    movement: Array<Vector3>
-    normal:  Vector3
-    restitution: number
-    penetration: number
+    bodies: Array<IBody>;
+    movement: Array<Vector3>;
+    normal:  Vector3;
+    restitution: number;
+    penetration: number;
 
-    constructor(body1, body2) {
-        this.bodies.push(body1)
-        this.bodies.push(body2)
+    constructor(body1: IBody, body2: IBody) {
+        this.bodies = [];
+        this.bodies.push(body1);
+        this.bodies.push(body2);
 
         this.movement = [
             new Vector3(),
             new Vector3()
         ]
+
+        this.normal = new Vector3();
+        this.restitution = 0;
+        this.penetration = 0;
     }
 
     resolve(duration: number) {

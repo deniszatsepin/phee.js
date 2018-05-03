@@ -25,7 +25,5 @@
     "typescript": "^2.8.3",
     "webpack": "^4.6.0"
   },
-  "dependencies": {
-    "gl-matrix": "^2.5.1"
-  }
+  "dependencies": {}
 }

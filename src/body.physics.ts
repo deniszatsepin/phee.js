@@ -6,59 +6,68 @@ import {
     Box3,
     Plane,
     Sphere
-} from 'three'
+} from 'three';
 
-export interface BodyInterface {
-    getMass(): number
-    getInverseMass(): number
-    isFiniteMass(): boolean
-    integrate(duration: number)
-    accumulate(acceleration: Vector3)
+export interface IBodyConfig {
+    shape?: Shape;
+};
 
-    setVelocity(x: number, y: number, z: number)
-    setVelocityV(velocity: Vector3)
-    cloneVelocity(): Vector3
-    setShape(shape: Shape)
+export interface IBody {
+    getMass(): number;
+    getInverseMass(): number;
+    isFiniteMass(): boolean;
+    integrate(duration: number): void;
+    accumulate(acceleration: Vector3): void;
 
-    setAcceleration(x: number, y: number, z: number)
-    setAccelerationV(acceleration: Vector3)
-    cloneAcceleration(): Vector3
+    setVelocity(x: number, y: number, z: number): void;
+    setVelocityV(velocity: Vector3): void;
+    cloneVelocity(): Vector3;
+    setShape(shape: Shape): void;
 
-    getPosition(): Vector3
-    setPositionV(position: Vector3)
+    setAcceleration(x: number, y: number, z: number): void;
+    setAccelerationV(acceleration: Vector3): void;
+    cloneAcceleration(): Vector3;
 
+    getPosition(): Vector3;
+    setPositionV(position: Vector3): void;
 }
 
-export type ShapeType = 'sphere' | 'box' | 'plane'
-export type Shape = Box3 | Sphere | Plane
+export type ShapeType = 'sphere' | 'box' | 'plane';
+export type Shape = Box3 | Sphere | Plane;
 
-export default class Body implements BodyInterface {
-    position: Vector3
-    velocity: Vector3
-    acceleration: Vector3
-    orientation: Quaternion
-    rotation: Vector3
-    forceAccum: Vector3
-    torqueAccum: Vector3
-    inverseMass: number
-    inverseInertiaTensor: Matrix3
-    inverseInertiaTensorWorld: Matrix3
-    transformMatrix: Matrix4
-    damping: number
-    andularDamping: number
-    shape: Shape
-    isAwake: boolean
+export default class Body implements IBody {
+    position: Vector3;
+    velocity: Vector3;
+    acceleration: Vector3;
+    orientation: Quaternion;
+    rotation: Vector3;
+    forceAccum: Vector3;
+    torqueAccum: Vector3;
+    inverseMass: number;
+    inverseInertiaTensor: Matrix3;
+    inverseInertiaTensorWorld: Matrix3;
+    transformMatrix: Matrix4;
+    damping: number;
+    angularDamping: number;
+    shape: Shape;
+    isAwake: boolean;
 
-    constructor() {
+    constructor(config: IBodyConfig) {
         this.position = new Vector3(0, 0, 0)
         this.velocity = new Vector3(0, 0, 0)
         this.acceleration = new Vector3(0, 0, 0)
+        this.orientation = new Quaternion(0, 0, 0, 0);
+        this.rotation = new Vector3(0, 0, 0);
         this.forceAccum = new Vector3(0, 0, 0)
         this.torqueAccum = new Vector3(0, 0, 0)
+        this.inverseMass = 0;
         this.inverseInertiaTensor = new Matrix3()
         this.inverseInertiaTensorWorld = new Matrix3()
+        this.transformMatrix = new Matrix4();
         this.isAwake = false
         this.damping = .9999
+        this.angularDamping = 0;
+        this.shape = config.shape || new Sphere();
     }
 
     setMass(mass: number) {
@@ -160,7 +169,7 @@ export default class Body implements BodyInterface {
         const dump = Math.pow(this.damping, duration)
         this.velocity.multiplyScalar(dump)
 
-        const angularDump = Math.pow(this.andularDamping, duration)
+        const angularDump = Math.pow(this.angularDamping, duration)
         this.rotation.multiplyScalar(angularDump)
 
         this.position.addScaledVector(this.velocity, duration)
