@@ -1,16 +1,16 @@
 import {
-    Vector3
-} from 'three'
+    vec3
+} from 'gl-matrix';
 
 import { IBody } from './body.physics'
 
 export type PhysicsWorldConfiguration = {
-    gravity: Vector3
+    gravity: vec3
 }
 
 export default class PhysicsWorld {
     bodies: Array<IBody>
-    gravity: Vector3
+    gravity: vec3
 
     constructor(config: PhysicsWorldConfiguration) {
         this.gravity = config.gravity;
