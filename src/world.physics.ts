@@ -2,14 +2,14 @@ import {
     Vector3
 } from 'three'
 
-import { BodyInterface } from './body.physics'
+import { IBody } from './body.physics'
 
 export type PhysicsWorldConfiguration = {
     gravity: Vector3
 }
 
 export default class PhysicsWorld {
-    bodies: Array<BodyInterface>
+    bodies: Array<IBody>
     gravity: Vector3
 
     constructor(config: PhysicsWorldConfiguration) {
@@ -17,12 +17,12 @@ export default class PhysicsWorld {
         this.bodies = [];
     }
 
-    addBody(body: BodyInterface) {
+    addBody(body: IBody) {
         this.bodies.push(body);
         body.accumulate(this.gravity)
     }
 
-    removeBody(body: BodyInterface) {
+    removeBody(body: IBody) {
         const idx = this.bodies.indexOf(body);
 
         if (idx >= 0) {
