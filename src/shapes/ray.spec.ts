@@ -25,4 +25,33 @@ describe('Ray', () => {
         expect(ray instanceof Ray).to.be.true;
         expect(glm.equals(dot, 1)).to.be.true;
     });
+
+    it('should be possible to check if a point is on the ray', () => {
+        const from = vec3.fromValues(0, 0, 0);
+        const to = vec3.fromValues(2, 2, 0);
+        const ray = new Ray(from, to);
+        const point = vec3.fromValues(1, 1, 0)
+
+        expect(ray.isPointIn(point)).to.be.true;
+    });
+
+    it('should be possible to check if a point is not on the ray', () => {
+        const from = vec3.fromValues(0, 0, 0);
+        const to = vec3.fromValues(2, 2, 0);
+        const ray = new Ray(from, to);
+        const point = vec3.fromValues(1, 0, 0)
+
+        expect(ray.isPointIn(point)).to.be.false;
+    });
+
+    it('should be possible to find a closest point to the ray', () => {
+        const from = vec3.fromValues(0, 0, 0);
+        const to = vec3.fromValues(2, 0, 0);
+        const ray = new Ray(from, to);
+        const point = vec3.fromValues(10, 10, 0)
+        const closest = ray.getClosestPoint(point);
+        const expected = vec3.fromValues(10, 0, 0);
+
+        expect(vec3.equals(closest, expected)).to.be.true;
+    })
 });
