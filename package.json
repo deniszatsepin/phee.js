@@ -4,7 +4,8 @@
   "description": "Phee.js is a TypeScript/JavaScript physics engine for 3D games",
   "main": "dist/index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "test:tdd": "mocha --require ts-node/register --watch --watch-extensions ts ./src/**/*.spec.ts"
   },
   "repository": {
     "type": "git",
@@ -18,13 +19,20 @@
   "author": "Denis Zatsepin <denis@zatsepin.me>",
   "license": "MIT",
   "devDependencies": {
+    "@types/chai": "^4.1.3",
     "@types/gl-matrix": "^2.4.0",
+    "@types/mocha": "^5.2.0",
     "autobind-decorator": "^2.1.0",
     "awesome-typescript-loader": "^5.0.0",
+    "chai": "^4.1.2",
+    "mocha": "^5.1.1",
     "source-map-loader": "^0.2.3",
     "ts-node": "^6.0.2",
+    "tslint": "^5.10.0",
     "typescript": "^2.8.3",
     "webpack": "^4.6.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "gl-matrix": "^2.5.1"
+  }
 }
