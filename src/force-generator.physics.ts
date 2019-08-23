@@ -1,5 +1,5 @@
-import { IBody } from './body.physics';
+import { IBody } from './body.physics'
 
 export interface ForceGeneratorInterface {
-    updateForce(particle: IBody, duration: number): void;
+  updateForce(particle: IBody, duration: number): void
 }

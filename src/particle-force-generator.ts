@@ -1,9 +1,7 @@
-import { IParticle } from './particle';
+import { IParticle } from './particle'
 
 export interface IParticleForceGenerator {
-    updateForce(particle: IParticle, duration: number): void;
+  updateForce(particle: IParticle, duration: number): void
 }
 
-export class ParticleForceGenerator {
-
-}
+export class ParticleForceGenerator {}

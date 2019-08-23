@@ -1,122 +1,123 @@
-import { Vector3 } from 'three';
-import { IBody } from './body.physics';
+import { Vector3 } from 'three'
+import { IBody } from './body.physics'
 
 export interface ContactInterface {
-    resolve(duration: number): void;
-    calculateSeparatingVelocity(): number;
+  resolve(duration: number): void
+  calculateSeparatingVelocity(): number
 }
 
 export default class Contact implements ContactInterface {
-    bodies: Array<IBody>;
-    movement: Array<Vector3>;
-    normal:  Vector3;
-    restitution: number;
-    penetration: number;
+  bodies: Array<IBody>
+  movement: Array<Vector3>
+  normal: Vector3
+  restitution: number
+  penetration: number
 
-    constructor(body1: IBody, body2: IBody) {
-        this.bodies = [];
-        this.bodies.push(body1);
-        this.bodies.push(body2);
+  constructor(body1: IBody, body2: IBody) {
+    this.bodies = []
+    this.bodies.push(body1)
+    this.bodies.push(body2)
 
-        this.movement = [
-            new Vector3(),
-            new Vector3()
-        ]
+    this.movement = [new Vector3(), new Vector3()]
 
-        this.normal = new Vector3();
-        this.restitution = 0;
-        this.penetration = 0;
+    this.normal = new Vector3()
+    this.restitution = 0
+    this.penetration = 0
+  }
+
+  resolve(duration: number) {
+    this.resolveVelocity(duration)
+    this.resolveInterpenetration(duration)
+  }
+
+  calculateSeparatingVelocity(): number {
+    const relativeVelocity = this.bodies[0].cloneVelocity()
+
+    if (this.bodies[1]) {
+      relativeVelocity.sub(this.bodies[1].cloneVelocity())
     }
 
-    resolve(duration: number) {
-        this.resolveVelocity(duration)
-        this.resolveInterpenetration(duration)
+    return relativeVelocity.dot(this.normal)
+  }
+
+  resolveVelocity(duration: number) {
+    const separatingVelocity = this.calculateSeparatingVelocity()
+    const [body1, body2] = this.bodies
+
+    if (separatingVelocity > 0) {
+      return
     }
 
-    calculateSeparatingVelocity(): number {
-        const relativeVelocity = this.bodies[0].cloneVelocity()
+    let newSepVelocity = -separatingVelocity * this.restitution
+    const accCausedVelocity = body1.cloneAcceleration()
 
-        if (this.bodies[1]) {
-            relativeVelocity.sub(this.bodies[1].cloneVelocity())
-        }
+    if (body2) accCausedVelocity.sub(body2.cloneAcceleration())
 
-        return relativeVelocity.dot(this.normal)
+    const accCausedSepVelocity = accCausedVelocity.dot(
+      this.normal.clone().multiplyScalar(duration)
+    )
+
+    if (accCausedSepVelocity < 0) {
+      newSepVelocity += this.restitution * accCausedSepVelocity
+
+      if (newSepVelocity < 0) newSepVelocity = 0
     }
 
-    resolveVelocity(duration: number) {
-        const separatingVelocity = this.calculateSeparatingVelocity()
-        const [body1, body2] = this.bodies
+    const deltaVelocity = newSepVelocity - separatingVelocity
 
-        if (separatingVelocity > 0) {
-            return
-        }
+    let totalInverseMass = body1.getInverseMass()
+    if (body2) totalInverseMass += body2.getInverseMass()
 
-        let newSepVelocity = -separatingVelocity * this.restitution
-        const accCausedVelocity = body1.cloneAcceleration()
+    if (totalInverseMass <= 0) return
 
-        if (body2) accCausedVelocity.sub(body2.cloneAcceleration())
+    const impulse = deltaVelocity / totalInverseMass
 
-        const accCausedSepVelocity = accCausedVelocity.dot(this.normal.clone().multiplyScalar(duration))
+    const impulsePerInverseMass = this.normal.multiplyScalar(impulse)
 
-        if (accCausedSepVelocity < 0) {
-            newSepVelocity += this.restitution * accCausedSepVelocity;
+    body1.setVelocityV(
+      body1
+        .cloneVelocity()
+        .add(impulsePerInverseMass.multiplyScalar(body1.getInverseMass()))
+    )
 
-            if (newSepVelocity < 0) newSepVelocity = 0;
-        }
+    if (body2) {
+      body2.setVelocityV(
+        body2
+          .cloneVelocity()
+          .add(impulsePerInverseMass.multiplyScalar(-body2.getInverseMass()))
+      )
+    }
+  }
 
-        const deltaVelocity = newSepVelocity - separatingVelocity
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  resolveInterpenetration(duration: number) {
+    if (this.penetration <= 0) return
+    const [body1, body2] = this.bodies
+    const [move1, move2] = this.movement
 
-        let totalInverseMass = body1.getInverseMass()
-        if (body2) totalInverseMass += body2.getInverseMass()
+    let totalInverseMass = body1.getInverseMass()
+    if (body2) totalInverseMass += body2.getInverseMass()
 
-        if (totalInverseMass <= 0) return
+    if (totalInverseMass <= 0) return
 
-        const impulse = deltaVelocity / totalInverseMass
+    const movePerInversMass = this.normal
+      .clone()
+      .multiplyScalar(this.penetration / totalInverseMass)
 
-        const impulsePerInverseMass = this.normal.multiplyScalar(impulse)
+    move1.copy(movePerInversMass)
+    move2.multiplyScalar(body1.getInverseMass())
 
-        body1.setVelocityV(
-            body1.cloneVelocity().add(
-                impulsePerInverseMass.multiplyScalar(body1.getInverseMass())
-            )
-        )
-
-        if (body2) {
-            body2.setVelocityV(
-                body2.cloneVelocity().add(
-                    impulsePerInverseMass.multiplyScalar(-body2.getInverseMass())
-                )
-            )
-        }
+    if (body2) {
+      move2.copy(movePerInversMass)
+      move2.multiplyScalar(-body2.getInverseMass())
+    } else {
+      move2.set(0, 0, 0)
     }
 
-    resolveInterpenetration(duration: number) {
-        if (this.penetration <= 0) return
-        const [body1, body2] = this.bodies
-        const [move1, move2] = this.movement
+    body1.getPosition().add(move1)
 
-
-        let totalInverseMass = body1.getInverseMass()
-        if (body2) totalInverseMass += body2.getInverseMass()
-
-        if (totalInverseMass <= 0) return
-
-        const movePerInversMass = this.normal.clone().multiplyScalar(this.penetration / totalInverseMass)
-
-        move1.copy(movePerInversMass);
-        move2.multiplyScalar(body1.getInverseMass())
-
-        if (body2) {
-            move2.copy(movePerInversMass)
-            move2.multiplyScalar(-body2.getInverseMass())
-        } else {
-            move2.set(0, 0, 0)
-        }
-
-        body1.getPosition().add(move1)
-
-        if (body2) {
-            body2.getPosition().add(move2)
-        }
+    if (body2) {
+      body2.getPosition().add(move2)
     }
+  }
 }
