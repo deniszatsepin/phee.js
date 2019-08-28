@@ -14,12 +14,8 @@ export default class Contact implements ContactInterface {
   penetration: number
 
   constructor(body1: IBody, body2: IBody) {
-    this.bodies = []
-    this.bodies.push(body1)
-    this.bodies.push(body2)
-
+    this.bodies = [body1, body2]
     this.movement = [new Vector3(), new Vector3()]
-
     this.normal = new Vector3()
     this.restitution = 0
     this.penetration = 0

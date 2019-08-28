@@ -1,5 +1,4 @@
 import { vec3 } from 'gl-matrix'
-
 import { IBody } from './body.physics'
 
 export type PhysicsWorldConfiguration = {
