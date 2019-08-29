@@ -1,4 +1,4 @@
-import { vec3, glMatrix as glm } from 'gl-matrix'
+import { vec3 } from 'gl-matrix'
 import { Triangle } from './triangle'
 
 describe('Triangle', () => {

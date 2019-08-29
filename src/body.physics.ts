@@ -1,15 +1,9 @@
-import {
-  Vector3,
-  Quaternion,
-  Matrix3,
-  Matrix4,
-  Box3,
-  Plane,
-  Sphere
-} from 'three'
+import { vec3, quat, mat3, mat4 } from 'gl-matrix'
+import { IShape } from './shapes/shape'
+import { Sphere } from './shapes/sphere'
 
 export interface IBodyConfig {
-  shape?: Shape
+  shape?: IShape
 }
 
 export interface IBody {
@@ -17,56 +11,46 @@ export interface IBody {
   getInverseMass(): number
   isFiniteMass(): boolean
   integrate(duration: number): void
-  accumulate(acceleration: Vector3): void
+  accumulate(acceleration: vec3): void
 
   setVelocity(x: number, y: number, z: number): void
-  setVelocityV(velocity: Vector3): void
-  cloneVelocity(): Vector3
-  setShape(shape: Shape): void
+  setVelocityV(velocity: vec3): void
+  cloneVelocity(): vec3
+  setShape(shape: IShape): void
 
   setAcceleration(x: number, y: number, z: number): void
-  setAccelerationV(acceleration: Vector3): void
-  cloneAcceleration(): Vector3
+  setAccelerationV(acceleration: vec3): void
+  cloneAcceleration(): vec3
 
-  getPosition(): Vector3
-  setPositionV(position: Vector3): void
+  getPosition(): vec3
+  setPositionV(position: vec3): void
 }
 
-export type ShapeType = 'sphere' | 'box' | 'plane'
-export type Shape = Box3 | Sphere | Plane
+export enum ShapeType {
+  Sphere = 'sphere',
+  AABB = 'aabb',
+  OBB = 'obb',
+  Plane = 'plane'
+}
 
 export default class Body implements IBody {
-  position: Vector3
-  velocity: Vector3
-  acceleration: Vector3
-  orientation: Quaternion
-  rotation: Vector3
-  forceAccum: Vector3
-  torqueAccum: Vector3
-  inverseMass: number
-  inverseInertiaTensor: Matrix3
-  inverseInertiaTensorWorld: Matrix3
-  transformMatrix: Matrix4
-  damping: number
-  angularDamping: number
-  shape: Shape
-  isAwake: boolean
+  position: vec3 = vec3.create()
+  velocity: vec3 = vec3.create()
+  acceleration: vec3 = vec3.create()
+  orientation: quat = quat.create()
+  rotation: vec3 = vec3.create()
+  forceAccum: vec3 = vec3.create()
+  torqueAccum: vec3 = vec3.create()
+  inverseMass: number = 0
+  inverseInertiaTensor: mat3 = mat3.create()
+  inverseInertiaTensorWorld: mat3 = mat3.create()
+  transformMatrix: mat4 = mat4.create()
+  damping: number = 0.9999
+  angularDamping: number = 0
+  shape: IShape
+  isAwake: boolean = false
 
   constructor(config: IBodyConfig) {
-    this.position = new Vector3(0, 0, 0)
-    this.velocity = new Vector3(0, 0, 0)
-    this.acceleration = new Vector3(0, 0, 0)
-    this.orientation = new Quaternion(0, 0, 0, 0)
-    this.rotation = new Vector3(0, 0, 0)
-    this.forceAccum = new Vector3(0, 0, 0)
-    this.torqueAccum = new Vector3(0, 0, 0)
-    this.inverseMass = 0
-    this.inverseInertiaTensor = new Matrix3()
-    this.inverseInertiaTensorWorld = new Matrix3()
-    this.transformMatrix = new Matrix4()
-    this.isAwake = false
-    this.damping = 0.9999
-    this.angularDamping = 0
     this.shape = config.shape || new Sphere()
   }
 
@@ -75,43 +59,43 @@ export default class Body implements IBody {
   }
 
   setVelocity(x: number, y: number, z: number) {
-    this.velocity.set(x, y, z)
+    vec3.set(this.velocity, x, y, z)
   }
 
-  setVelocityV(velocity: Vector3) {
-    this.velocity.copy(velocity)
+  setVelocityV(velocity: vec3) {
+    vec3.copy(this.velocity, velocity)
   }
 
-  cloneVelocity(): Vector3 {
-    return this.velocity.clone()
+  cloneVelocity(): vec3 {
+    return vec3.clone(this.velocity)
   }
 
-  setShape(shape: Shape) {
+  setShape(shape: IShape) {
     this.shape = shape
   }
 
   setAcceleration(x: number, y: number, z: number) {
-    this.acceleration.set(x, y, z)
+    vec3.set(this.acceleration, x, y, z)
   }
 
-  setAccelerationV(acceleration: Vector3) {
-    this.acceleration.copy(acceleration)
+  setAccelerationV(acceleration: vec3) {
+    vec3.copy(this.acceleration, acceleration)
   }
 
-  cloneAcceleration(): Vector3 {
-    return this.acceleration.clone()
+  cloneAcceleration(): vec3 {
+    return vec3.clone(this.acceleration)
   }
 
-  getPosition(): Vector3 {
-    return this.position
+  getPosition(): vec3 {
+    return vec3.clone(this.position)
   }
 
-  setPositionV(position: Vector3) {
-    this.position.copy(position)
+  setPositionV(position: vec3) {
+    vec3.copy(this.position, position)
   }
 
   getMass(): number {
-    return this.inverseMass / 1 // TODO: looks strange, double check it!
+    return 1 / this.inverseMass
   }
 
   getInverseMass(): number {
@@ -123,52 +107,75 @@ export default class Body implements IBody {
   }
 
   clearAccumulator() {
-    this.forceAccum.set(0, 0, 0)
-    this.torqueAccum.set(0, 0, 0)
+    vec3.set(this.forceAccum, 0, 0, 0)
+    vec3.set(this.torqueAccum, 0, 0, 0)
   }
 
-  accumulate(acceleration: Vector3) {
-    this.acceleration.add(acceleration)
+  accumulate(acceleration: vec3) {
+    vec3.add(this.acceleration, this.acceleration, acceleration)
   }
 
-  addForce(force: Vector3) {
-    this.forceAccum.add(force)
+  addForce(force: vec3) {
+    vec3.add(this.forceAccum, this.forceAccum, force)
   }
 
   // addForceAtPoint(force: Vector3, point: Vector3) {}
 
   // addForceAtBodyPoint(force: Vector3, point: Vector3) {}
 
-  setInertiaTensor(inertiaTensor: Matrix3) {
-    this.inverseInertiaTensor.getInverse(inertiaTensor)
+  setInertiaTensor(inertiaTensor: mat3) {
+    mat3.invert(this.inverseInertiaTensor, inertiaTensor)
   }
 
   calculateDerivedData() {
-    this.orientation.normalize()
+    quat.normalize(this.orientation, this.orientation)
     // calculate transform matrix
-    this.transformMatrix.makeRotationFromQuaternion(this.orientation)
-    this.transformMatrix.setPosition(this.position)
+
+    mat4.fromRotationTranslation(
+      this.transformMatrix,
+      this.orientation,
+      this.position
+    )
   }
 
   integrate(duration: number) {
     if (!this.isFiniteMass()) return
 
-    const lastFrameAcceleration = this.acceleration.clone()
-    lastFrameAcceleration.addScaledVector(this.forceAccum, this.inverseMass)
+    const lastFrameAcceleration = vec3.clone(this.acceleration)
+    vec3.scaleAndAdd(
+      lastFrameAcceleration,
+      lastFrameAcceleration,
+      this.forceAccum,
+      this.inverseMass
+    )
 
-    const angularAcceleration = this.torqueAccum.clone()
-    angularAcceleration.applyMatrix3(this.inverseInertiaTensorWorld)
+    const angularAcceleration = vec3.clone(this.torqueAccum)
+    vec3.transformMat3(
+      angularAcceleration,
+      angularAcceleration,
+      this.inverseInertiaTensorWorld
+    )
 
-    this.velocity.addScaledVector(lastFrameAcceleration, duration)
-    this.rotation.addScaledVector(angularAcceleration, duration)
+    vec3.scaleAndAdd(
+      this.velocity,
+      this.velocity,
+      lastFrameAcceleration,
+      duration
+    )
+    vec3.scaleAndAdd(
+      this.rotation,
+      this.rotation,
+      angularAcceleration,
+      duration
+    )
 
     const dump = Math.pow(this.damping, duration)
-    this.velocity.multiplyScalar(dump)
+    vec3.scale(this.velocity, this.velocity, dump)
 
     const angularDump = Math.pow(this.angularDamping, duration)
-    this.rotation.multiplyScalar(angularDump)
+    vec3.scale(this.rotation, this.rotation, angularDump)
 
-    this.position.addScaledVector(this.velocity, duration)
+    vec3.scaleAndAdd(this.position, this.position, this.velocity, duration)
 
     quaternionAddScaledVector(this.orientation, this.rotation, duration)
 
@@ -177,15 +184,11 @@ export default class Body implements IBody {
   }
 }
 
-function quaternionAddScaledVector(q: Quaternion, v: Vector3, scale: number) {
-  const rot = new Quaternion(0, v.x * scale, v.y * scale, v.z * scale)
+function quaternionAddScaledVector(q: quat, v: vec3, scale: number) {
+  const rot = quat.fromValues(0, v[0] * scale, v[1] * scale, v[2] * scale)
 
-  rot.multiply(q)
-
-  q.x = rot.x * 0.5
-  q.y = rot.y * 0.5
-  q.z = rot.z * 0.5
-  q.w = rot.w * 0.5
+  quat.mul(rot, rot, q)
+  quat.scale(q, rot, 0.5)
 
   return q
 }

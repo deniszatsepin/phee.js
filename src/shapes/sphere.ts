@@ -10,9 +10,14 @@ export class Sphere implements ISphere {
   private _position: vec3 = vec3.create()
   private _radius: number = 1
 
-  constructor(position: vec3, radius: number) {
-    vec3.copy(this._position, position)
-    this._radius = radius
+  constructor(position?: vec3, radius?: number) {
+    if (position) {
+      vec3.copy(this._position, position)
+    }
+
+    if (radius) {
+      this._radius = radius
+    }
   }
 
   get position(): vec3 {

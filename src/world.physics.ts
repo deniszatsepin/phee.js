@@ -2,16 +2,19 @@ import { vec3 } from 'gl-matrix'
 import { IBody } from './body.physics'
 
 export type PhysicsWorldConfiguration = {
-  gravity: vec3
+  gravity?: vec3
 }
 
-export default class PhysicsWorld {
-  bodies: Array<IBody>
-  gravity: vec3
+export const GRAVITY = vec3.fromValues(0, -9.80665, 0)
 
-  constructor(config: PhysicsWorldConfiguration) {
-    this.gravity = config.gravity
-    this.bodies = []
+export default class PhysicsWorld {
+  bodies: IBody[] = []
+  gravity: vec3 = vec3.copy(vec3.create(), GRAVITY)
+
+  constructor({ gravity }: PhysicsWorldConfiguration = {}) {
+    if (gravity) {
+      vec3.copy(this.gravity, gravity)
+    }
   }
 
   addBody(body: IBody) {

@@ -49,6 +49,6 @@ export function AABBAABB(aabb1: AABB, aabb2: AABB): boolean {
   )
 }
 
-export function AABBOBB(aabb: AABB, obb: OBB): boolean {
-  return false
-}
+// export function AABBOBB(aabb: AABB, obb: OBB): boolean {
+//   return false
+// }

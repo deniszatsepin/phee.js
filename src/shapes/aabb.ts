@@ -62,24 +62,20 @@ export class AABB implements IAABB {
     return new AABB(origin, size)
   }
 
-  isPointIn: (point: vec3) => boolean = (function() {
-    const tmp = vec3.create()
+  isPointIn(point: vec3): boolean {
+    const min = this.getMin()
+    const max = this.getMax()
 
-    return function isPointInAABB(this: AABB, point: vec3): boolean {
-      const min = this.getMin()
-      const max = this.getMax()
-
-      if (point[0] < min[0] || point[1] < min[1] || point[2] < min[2]) {
-        return false
-      }
-
-      if (point[0] > max[0] || point[1] > max[1] || point[2] > max[2]) {
-        return false
-      }
-
-      return true
+    if (point[0] < min[0] || point[1] < min[1] || point[2] < min[2]) {
+      return false
     }
-  })()
+
+    if (point[0] > max[0] || point[1] > max[1] || point[2] > max[2]) {
+      return false
+    }
+
+    return true
+  }
 
   getClosestPoint(point: vec3): vec3 {
     const result = vec3.clone(point)
